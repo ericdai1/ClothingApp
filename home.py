@@ -27,11 +27,13 @@ def handle_user_search():
         gender = st.selectbox("Gender:", ["Male", "Female"])
 
         # Create a dropdown menu with clothing options
-        selected_clothing = st.selectbox("Select a clothing type:",
+        selected_clothing = st.selectbox("Clothing Type:",
                                          ["Shirt", "Pants", "Shorts", "Tops", "Dresses", "Skirts"])
 
         # Select price
-        price_range = st.slider("Select Price Range (in USD):", min_value=1, max_value=1000, value=(1, 1000))
+        # Create a range slider for price selection
+        price_range = st.slider("Price Range (in USD):", min_value=1, max_value=1000,
+                                value=(1, 1000))
 
         display_closest_images()
 
