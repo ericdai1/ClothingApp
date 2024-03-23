@@ -27,7 +27,7 @@ def upload_products_to_db():
     get_categories_collection().insert_many(br_items)
 
 
-def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[], embedding):
+def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_type=None, embedding=[]):
     filtered_query = {}
     if min_price:
         filtered_query['price'] = {'$gte': min_price}
@@ -40,10 +40,11 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
 
     if gender:
         filtered_query['gender'] = gender
-    
-    if len(clothing_types) > 0:
-        filtered_query['clothing_type'] = {'$in': clothing_types}
 
+    if clothing_type:
+        filtered_query['clothing_type'] = clothing_type
+
+    # Perform the query for 9 most relevant clothing
     vector_search_query = {
         "queryVector": embedding,
         "path": "vector_embedding",
@@ -53,7 +54,6 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
         "filter": filtered_query
     }
 
-    # TODO: Add filtered query matches, does not work at the moment
     pipeline = [
         {'$vectorSearch': vector_search_query}
     ]

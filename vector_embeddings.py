@@ -38,7 +38,6 @@ def store_mongo_embeddings():
                 response = requests.get(img_url)
                 image = Image.open(BytesIO(response.content))
                 doc['vector_embedding'] = create_vector_embedding(image)
-                print(doc['vector_embedding'])
 
                 collection.replace_one({'_id': doc['_id']}, doc)
 

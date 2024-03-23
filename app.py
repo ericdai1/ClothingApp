@@ -1,5 +1,5 @@
 from vector_embeddings import create_vector_embedding
-from clothing_db_utils.py import fetch_clothing
+from clothing_db_utils import fetch_clothing
 import streamlit as st
 from PIL import Image
 import os
@@ -21,40 +21,25 @@ def resize_image(image, max_width=300):
 
 # Involve MongoDB later
 def display_images(relevant_clothing=[]):
-    # Load images and extract features
-    # Directory containing images - temporary, use MongoDB and dropdowns later
-    images_dir = os.path.join(os.path.dirname(__file__), 'images')
-    image_files = os.listdir(images_dir)
-    image_paths = [os.path.join(images_dir, img) for img in image_files]
-
-    # Text file containing URLs - temporary, use MongoDB later
-    url_file = os.path.join(os.path.dirname(__file__), 'imageURLs')
-
-    # Read URLs from the text file
-    with open(url_file, "r") as file:
-        urls = file.readlines()
-
-    # Ensure number of images matches number of URLs
-    if len(image_paths) != len(urls) or len(image_paths) == 0:
-        st.error("NO IMAGES YET, come back later :)")
-        return
-
-    images = [Image.open(path) for path in image_paths]
-
-    # Display images and corresponding URLs
+    # Display the images for relevant clothing and corresponding URLs
     st.write("### Most relevant outfits for you:")
 
     num_cols = 3
     image_width = 200
     columns = st.columns(num_cols)
 
-    for col, (image, url) in enumerate(zip(images, urls)):
+    for col, clothing in enumerate(relevant_clothing):
         with columns[col % num_cols]:
             # Encode image as base64
+            img_url = clothing['img_url']
+            store_url = clothing['store_link']
+
+            response = requests.get(img_url)
+            image = Image.open(BytesIO(response.content))
             image_base64 = image_to_base64(image)
 
             # Create HTML code for image with clickable link
-            html_code = (f'<a href="{url}" target="_blank"><img src="data:image/png;base64,{image_base64}"'
+            html_code = (f'<a href="{store_url}" target="_blank"><img src="data:image/png;base64,{image_base64}"'
                          f' alt="Image" style="width:{image_width}px;height:auto;"></a>')
 
             # Display the HTML code using st.markdown()
@@ -65,7 +50,7 @@ def handle_user_search():
     try:
         uploaded_file = st.file_uploader("Upload a piece of clothing you want to search for:", type=["jpg", "jpeg", "png"])
 
-        image = None
+        vector_embedding = None
         if uploaded_file is not None:
             # Display the uploaded image
             st.image(uploaded_file, caption='Uploaded Image', use_column_width=True)
@@ -86,14 +71,16 @@ def handle_user_search():
         # Create a range slider for price selection
         price_range = st.slider("Price Range (in USD):", min_value=1, max_value=1000,
                                 value=(1, 1000))
+        min_price = price_range[0]
+        max_price = price_range[1]
 
         # Search button
         # Centered search button
         if st.button("Search", key="search_button"):
-            if not image:
+            if not vector_embedding:
                 st.error("Please upload an image first")
             else:
-                relevant_clothing = fetch_clothing(image, gender, selected_clothing, price_range)
+                relevant_clothing = fetch_clothing(min_price, max_price, gender, selected_clothing, vector_embedding)
                 display_images(relevant_clothing)
 
     except Exception as e:
