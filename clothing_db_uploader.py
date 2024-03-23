@@ -11,7 +11,7 @@ def get_categories_collection():
     global dbname
     dbname = client['ClothingRecommender']
     global collection
-    collection = dbname['ClothingItems']
+    collection = dbname['BrItems']
 
     return collection
 

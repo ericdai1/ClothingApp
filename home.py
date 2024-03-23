@@ -5,8 +5,12 @@ import os
 import base64
 from io import BytesIO
 
+# Main function that displays clothes the user is likely searching for based on input and uploaded image
+def display_closest_images():
+    return
+
 # Function to handle main logic of project, user uploading image to search for
-def handle_user_upload():
+def handle_user_search():
     try:
         uploaded_file = st.file_uploader("Upload a piece of clothing you want to search for:", type=["jpg", "jpeg", "png"])
 
@@ -19,7 +23,18 @@ def handle_user_upload():
             vector_embedding = create_vector_embedding(image)
             print(vector_embedding)
 
-            # TODO: Store vector_embedding into MongoDB atlas database
+        # Gender option
+        gender = st.selectbox("Gender:", ["Male", "Female"])
+
+        # Create a dropdown menu with clothing options
+        selected_clothing = st.selectbox("Select a clothing type:",
+                                         ["Shirt", "Pants", "Shorts", "Tops", "Dresses", "Skirts"])
+
+        # Select price
+        price_range = st.slider("Select Price Range (in USD):", min_value=1, max_value=1000, value=(1, 1000))
+
+        display_closest_images()
+
     except Exception as e:
         print(f"Error occurred while uploading image. Error: {e}")
 
@@ -40,10 +55,9 @@ def resize_image(image, max_width=300):
 def display_images(image_paths, urls):
     # Load images and extract features
     images = [Image.open(path) for path in image_paths]
-    images_resized = [resize_image(image) for image in images]
 
     # Display images and corresponding URLs
-    st.write("### Images and Corresponding URLs:")
+    st.write("### Most relevant outfits for you:")
 
     num_cols = 3
     image_width = 200
@@ -61,7 +75,11 @@ def display_images(image_paths, urls):
             # Display the HTML code using st.markdown()
             st.markdown(html_code, unsafe_allow_html=True)
 def main():
-    # Directory containing images - temporary
+    # TODO Main feature - In progress
+    # Upload user's image and process vector embedding for it, and allow user to filter their search
+    handle_user_search()
+
+    # Directory containing images - temporary, use MongoDB and dropdowns later
     images_dir = os.path.join(os.path.dirname(__file__), 'images')
     image_files = os.listdir(images_dir)
     image_paths = [os.path.join(images_dir, img) for img in image_files]
@@ -80,9 +98,7 @@ def main():
     else:
         display_images(image_paths, urls)
 
-    # TODO Main feature - In progress
-    # Upload image and process vector embedding for it
-    handle_user_upload()
+
 
 # Main code
 if __name__ == "__main__":
