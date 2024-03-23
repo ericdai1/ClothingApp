@@ -49,9 +49,9 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_type=No
         "queryVector": embedding,
         "path": "vector_embedding",
         "numCandidates": 200,
-        "limit": 9,
+        "limit": 30,
         "index": "ClothingImage",
-        "filter": filtered_query
+        # "filter": filtered_query
     }
 
     pipeline = [

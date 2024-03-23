@@ -5,6 +5,7 @@ from PIL import Image
 import os
 import base64
 from io import BytesIO
+import requests
 
 # Function for base64 encoding
 def image_to_base64(image):
@@ -19,16 +20,31 @@ def resize_image(image, max_width=300):
     height_size = int((float(image.size[1]) * float(width_percent)))
     return image.resize((max_width, height_size), Image.Resampling.LANCZOS)
 
+# Function to remove duplicates
+def remove_duplicates(relevant_clothing=[]):
+    unique_clothing=[]
+    seen_images = set()
+
+    for clothing in relevant_clothing:
+        if clothing['img_url'] in seen_images:
+            continue
+
+        unique_clothing.append(clothing)
+        seen_images.add(clothing['img_url'])
+
+    return unique_clothing
+
 # Involve MongoDB later
 def display_images(relevant_clothing=[]):
     # Display the images for relevant clothing and corresponding URLs
     st.write("### Most relevant outfits for you:")
 
+    unique_clothing = remove_duplicates(relevant_clothing)
     num_cols = 3
     image_width = 200
     columns = st.columns(num_cols)
 
-    for col, clothing in enumerate(relevant_clothing):
+    for col, clothing in enumerate(unique_clothing):
         with columns[col % num_cols]:
             # Encode image as base64
             img_url = clothing['img_url']
@@ -61,11 +77,11 @@ def handle_user_search():
             print(vector_embedding)
 
         # Gender option
-        gender = st.selectbox("Gender:", ["Male", "Female"])
+        gender = st.selectbox("Gender:", ["Male", "Female"], index=0)
 
         # Create a dropdown menu with clothing options
         selected_clothing = st.selectbox("Clothing Type:",
-                                         ["Shirt", "Pants", "Shorts", "Tops", "Dresses", "Skirts"])
+                                         ["Shirt", "Pants", "Shorts", "Tops", "Dresses", "Skirts"], index=0)
 
         # Select price
         # Create a range slider for price selection
