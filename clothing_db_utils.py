@@ -26,8 +26,8 @@ def upload_products_to_db():
     br_items = get_br_items()
     get_categories_collection().insert_many(br_items)
 
-# Fetch the top 9 most relevant pieces of clothing based on certain inputs the user chooses, including the image
-def fetch_clothing(image, min_price=None, max_price=None, gender=None, clothing_types=[]):
+
+def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[], embedding):
     filtered_query = {}
     if min_price:
         filtered_query['price'] = {'$gte': min_price}
@@ -43,32 +43,19 @@ def fetch_clothing(image, min_price=None, max_price=None, gender=None, clothing_
     
     if len(clothing_types) > 0:
         filtered_query['clothing_type'] = {'$in': clothing_types}
-    
-    filtered_query['limit'] = 9
-    embedding = create_vector_embedding(image)
 
     vector_search_query = {
         "queryVector": embedding,
         "path": "vector_embedding",
         "numCandidates": 200,
         "limit": 9,
-        "index": "ClothingImage"
+        "index": "ClothingImage",
+        "filter": filtered_query
     }
 
     # TODO: Add filtered query matches, does not work at the moment
     pipeline = [
-        {'$vectorSearch': vector_search_query},
-        # {'$match': filtered_query},
+        {'$vectorSearch': vector_search_query}
     ]
 
     return get_categories_collection().aggregate(pipeline)
-
-# Tests
-results = fetch_clothing(max_price = 200.0)
-
-i = 0
-for item in results:
-    print(item['img_url'])
-    i += 1
-
-print(i)
