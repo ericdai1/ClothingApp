@@ -8,6 +8,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 
+# Set up MongoDB
 def get_categories_collection():
     CONNECTION_STRING = f"mongodb+srv://justinm02:{os.environ['MONGO_PASSWORD']}@justincluster.xsm9kat.mongodb.net/?retryWrites=true&w=majority"
     
@@ -20,19 +21,23 @@ def get_categories_collection():
 
     return collection
 
+# Upload to MongoDB
 def upload_products_to_db():
     br_items = get_br_items()
     get_categories_collection().insert_many(br_items)
 
-def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[]):
+# Fetch the top 9 most relevant pieces of clothing based on certain inputs the user chooses, including the image
+def fetch_clothing(image, min_price=None, max_price=None, gender=None, clothing_types=[]):
     filtered_query = {}
     if min_price:
         filtered_query['price'] = {'$gte': min_price}
+
     if max_price:
         if 'price' in filtered_query:
             filtered_query['price'].update({'$lte': max_price})
         else:
             filtered_query['price'] = {'$lte': max_price}
+
     if gender:
         filtered_query['gender'] = gender
     
@@ -40,9 +45,6 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
         filtered_query['clothing_type'] = {'$in': clothing_types}
     
     filtered_query['limit'] = 9
-
-    response = requests.get('https://bananarepublicfactory.gapfactory.com/webcontent/0054/852/618/cn54852618.jpg?q=h&w=267')
-    image = Image.open(BytesIO(response.content))
     embedding = create_vector_embedding(image)
 
     vector_search_query = {
@@ -53,13 +55,15 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
         "index": "ClothingImage"
     }
 
+    # TODO: Add filtered query matches, does not work at the moment
     pipeline = [
         {'$vectorSearch': vector_search_query},
-        {'$match': filtered_query},
+        # {'$match': filtered_query},
     ]
 
     return get_categories_collection().aggregate(pipeline)
 
+# Tests
 results = fetch_clothing(max_price = 200.0)
 
 i = 0

@@ -1,4 +1,5 @@
 from vector_embeddings import create_vector_embedding
+from clothing_db_utils.py import fetch_clothing
 import streamlit as st
 from PIL import Image
 import os
@@ -19,7 +20,7 @@ def resize_image(image, max_width=300):
     return image.resize((max_width, height_size), Image.Resampling.LANCZOS)
 
 # Involve MongoDB later
-def display_images():
+def display_images(relevant_clothing=[]):
     # Load images and extract features
     # Directory containing images - temporary, use MongoDB and dropdowns later
     images_dir = os.path.join(os.path.dirname(__file__), 'images')
@@ -64,6 +65,7 @@ def handle_user_search():
     try:
         uploaded_file = st.file_uploader("Upload a piece of clothing you want to search for:", type=["jpg", "jpeg", "png"])
 
+        image = None
         if uploaded_file is not None:
             # Display the uploaded image
             st.image(uploaded_file, caption='Uploaded Image', use_column_width=True)
@@ -88,7 +90,11 @@ def handle_user_search():
         # Search button
         # Centered search button
         if st.button("Search", key="search_button"):
-            display_images()
+            if not image:
+                st.error("Please upload an image first")
+            else:
+                relevant_clothing = fetch_clothing(image, gender, selected_clothing, price_range)
+                display_images(relevant_clothing)
 
     except Exception as e:
         print(f"Error occurred while uploading image. Error: {e}")
