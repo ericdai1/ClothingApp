@@ -3,6 +3,11 @@ from banana_republic_scraper import get_br_items
 from pymongo import MongoClient
 import os
 
+from vector_embeddings import create_vector_embedding
+from PIL import Image
+import requests
+from io import BytesIO
+
 def get_categories_collection():
     CONNECTION_STRING = f"mongodb+srv://justinm02:{os.environ['MONGO_PASSWORD']}@justincluster.xsm9kat.mongodb.net/?retryWrites=true&w=majority"
     
@@ -12,17 +17,12 @@ def get_categories_collection():
     dbname = client['ClothingRecommender']
     global collection
     collection = dbname['ClothingItems']
-    # collection = dbname['BrItems']
 
     return collection
 
 def upload_products_to_db():
     br_items = get_br_items()
     get_categories_collection().insert_many(br_items)
-
-def clean_up(query={}):
-    # get_categories_collection().delete_many(query)
-    pass
 
 def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[]):
     filtered_query = {}
@@ -39,7 +39,11 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
     if len(clothing_types) > 0:
         filtered_query['clothing_type'] = {'$in': clothing_types}
 
-    vec = [0.0] * 512
+    response = requests.get('https://bananarepublicfactory.gapfactory.com/webcontent/0054/852/618/cn54852618.jpg?q=h&w=267')
+    image = Image.open(BytesIO(response.content))
+    embedding = create_vector_embedding(image)
+    print(embedding)
+
     vector_search_query = {
         "queryVector": vec,
         "path": "vector_embedding",
