@@ -38,32 +38,33 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_types=[
     
     if len(clothing_types) > 0:
         filtered_query['clothing_type'] = {'$in': clothing_types}
+    
+    filtered_query['limit'] = 9
 
     response = requests.get('https://bananarepublicfactory.gapfactory.com/webcontent/0054/852/618/cn54852618.jpg?q=h&w=267')
     image = Image.open(BytesIO(response.content))
     embedding = create_vector_embedding(image)
-    print(embedding)
 
     vector_search_query = {
-        "queryVector": vec,
+        "queryVector": embedding,
         "path": "vector_embedding",
         "numCandidates": 200,
-        "limit": 100,
-        "index": "PlotSemanticSearch"
+        "limit": 9,
+        "index": "ClothingImage"
     }
 
     pipeline = [
         {'$vectorSearch': vector_search_query},
-        # {'$match': filtered_query},
+        {'$match': filtered_query},
     ]
 
     return get_categories_collection().aggregate(pipeline)
 
-results = fetch_clothing(max_price = 30.0, gender = 'men', clothing_types = ['shorts'])
+results = fetch_clothing(max_price = 200.0)
 
 i = 0
 for item in results:
-    print(item['price'])
+    print(item['img_url'])
     i += 1
 
 print(i)
