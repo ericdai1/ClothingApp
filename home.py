@@ -79,6 +79,7 @@ def display_images(image_paths, urls):
 def main():
     # TODO Main feature - In progress
     # Upload user's image and process vector embedding for it, and allow user to filter their search
+    st.write("### WELCOME TO BANANA SEARCH")
     handle_user_search()
 
     # Directory containing images - temporary, use MongoDB and dropdowns later
@@ -93,7 +94,6 @@ def main():
     with open(url_file, "r") as file:
         urls = file.readlines()
 
-    st.write("### WELCOME TO BANANA SEARCH")
     # Ensure number of images matches number of URLs
     if len(image_paths) != len(urls) or len(image_paths) == 0:
         st.error("NO IMAGES YET, come back later :)")
