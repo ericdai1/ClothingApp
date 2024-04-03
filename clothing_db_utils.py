@@ -54,8 +54,39 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_type=No
         "filter": filtered_query
     }
 
+    # print(vector_search_query)
+
     pipeline = [
         {'$vectorSearch': vector_search_query}
     ]
 
-    return get_categories_collection().aggregate(pipeline)
+    result = get_categories_collection().aggregate(pipeline)
+
+    for r in result:
+        print(r)
+
+    return result
+
+def group_image_urls_into_counts():
+    pipeline = {}
+
+    result = get_categories_collection().aggregate([
+        {
+            '$group': {
+                '_id': "$img_url",
+                'count': { '$sum': 1 }
+            }
+        },
+        {
+            '$project': {
+                'img_url': "$_id",
+                'frequency': "$count",
+                '_id': 0
+            }
+        }]
+    )
+
+    for r in result:
+        print(r)
+
+group_image_urls_into_counts()
