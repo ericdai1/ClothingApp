@@ -4,11 +4,8 @@ from pymongo import MongoClient
 import os
 
 from vector_embeddings import create_vector_embedding
-from PIL import Image
-import requests
-from io import BytesIO
 
-# Set up MongoDB
+
 def get_categories_collection():
     CONNECTION_STRING = f"mongodb+srv://justinm02:{os.environ['MONGO_PASSWORD']}@justincluster.xsm9kat.mongodb.net/?retryWrites=true&w=majority"
     
@@ -21,7 +18,7 @@ def get_categories_collection():
 
     return collection
 
-# Upload to MongoDB
+
 def upload_products_to_db():
     br_items = get_br_items()
     get_categories_collection().insert_many(br_items)
@@ -54,22 +51,13 @@ def fetch_clothing(min_price=None, max_price=None, gender=None, clothing_type=No
         "filter": filtered_query
     }
 
-    # print(vector_search_query)
-
-    pipeline = [
+    result = get_categories_collection().aggregate([
         {'$vectorSearch': vector_search_query}
-    ]
-
-    result = get_categories_collection().aggregate(pipeline)
-
-    for r in result:
-        print(r)
-
+    ])
     return result
 
+# Only used for debugging - ensuring that we have no dupes in db
 def group_image_urls_into_counts():
-    pipeline = {}
-
     result = get_categories_collection().aggregate([
         {
             '$group': {
@@ -89,4 +77,6 @@ def group_image_urls_into_counts():
     for r in result:
         print(r)
 
-group_image_urls_into_counts()
+# This file should only be directly run for debugging purposes
+if __name__ == "__main__":
+    group_image_urls_into_counts()

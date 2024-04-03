@@ -42,9 +42,6 @@ def get_all_br_items_async(urls_to_render, genders, clothing_types):
 
     items = []
     unique_img_urls = set()
-    
-    count = 0
-    unique_count = 0
     index = 0
     for soup in soups:
         gender = genders[index]
@@ -87,7 +84,6 @@ def get_all_br_items_async(urls_to_render, genders, clothing_types):
             except:
                 print(f'Encountered error at count - {count}')
 
-    print(f'count: {count}, unique count: {unique_count}')
     return items
 
 
